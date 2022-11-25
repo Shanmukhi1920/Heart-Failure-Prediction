@@ -1,0 +1,350 @@
+---
+title: "Heart Failure Prediction data analysis"
+author: "Shanmukhi"
+date: "2022-11-09"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+## Loading the required libararies
+
+```{r}
+library(tidyverse)
+library(dplyr)
+library(caret)
+library(e1071)
+library(ggplot2)
+library(rpart)
+library(ggfortify)
+library(kknn)
+```
+
+## setting the working directory
+
+```{r}
+setwd("D:/DSC441/HW5")
+getwd()
+```
+# **a.Data Gathering and Integration**
+
+## Took Heart Failure Prediction Dataset from Kaggle
+```{r}
+# loading the dataset
+heart<-read.csv("heart.csv",header=TRUE,sep=",")
+# Top 6 columns
+head(heart)
+```
+```{r}
+str(heart)
+```
+
+```{r}
+# Columns in the dataset
+names(heart)
+```
+# **b.Data Exploration**
+```{r}
+summary(heart)
+```
+```{r}
+# Grouping and Summarizing
+# Grouping by Chest Pain Type
+heart %>% group_by(heart$ChestPainType) %>% summarise("count"=n())
+# Grouping by Heart diseases
+heart %>% group_by(heart$HeartDisease) %>% summarise("count"=n())
+# Grouping by Resting ECG
+heart %>% group_by(heart$RestingECG) %>% summarise("count"=n())
+#Grouping by ST_Slope
+heart %>% group_by(heart$ST_Slope) %>% summarise("count"=n())
+#Groupby sex and find mean of Cholesterol
+heart %>% group_by(heart$Sex) %>% summarize(avg_cholesterol = mean(Cholesterol,na.rm=TRUE))
+#Groupby Age and find mean of Max heart rate
+heart %>% group_by(heart$Sex) %>% summarize(avg_heartrate = mean(MaxHR,na.rm=TRUE))
+# Group by Sex find the total of heart disease people
+heart %>% group_by(Sex) %>% select(Sex, HeartDisease) %>% table() %>% head()
+# Group by Chest Pain type find the total of heart disease people
+heart %>% group_by(ChestPainType) %>% select(ChestPainType, HeartDisease) %>% table() %>% head()
+```
+## Data distributions
+```{r}
+# Histogram's of numerical variables
+ggplot(heart, aes(Age)) + geom_histogram(binwidth = 7)
+ggplot(heart, aes(MaxHR)) + geom_histogram(binwidth = 15)
+ggplot(heart, aes(RestingBP)) + geom_histogram(binwidth = 20)
+ggplot(heart, aes(Cholesterol)) + geom_histogram(binwidth = 50)
+ggplot(heart, aes(Oldpeak)) + geom_histogram(binwidth = 2)
+ggplot(heart, aes(FastingBS)) + geom_histogram(binwidth = 0.5)
+```
+```{r}
+# Bar plots for categorical 
+ggplot(heart, aes(x=Sex)) + geom_bar()
+ggplot(heart, aes(x=ChestPainType)) + geom_bar()
+ggplot(heart, aes(x=RestingECG)) + geom_bar()
+ggplot(heart, aes(x=ExerciseAngina)) + geom_bar()
+ggplot(heart, aes(x=ST_Slope)) + geom_bar()
+```
+## Relationship between variables
+```{r}
+# Bar plot of Chest Pain type stacked by Sex
+Cpt <- ggplot(heart, aes(x=ChestPainType, fill=Sex))
+Cpt + geom_bar(position="stack")
+```
+```{r}
+# Scatter Plot of Age vs Resting BP
+ggplot(heart, aes(Age, RestingBP)) + geom_point()
+```
+```{r}
+# Box plot of ECG vs Old peak
+ggplot(heart, aes(x=RestingECG,y=Oldpeak))+geom_boxplot()
+```
+```{r}
+# Scatter plot of Cholesterol vs Heart rate
+ggplot(heart, aes(Cholesterol,MaxHR)) + geom_point()
+```
+```{r}
+# Box plot of Heart Diseases vs Age
+ggplot(heart, aes(x=HeartDisease,y=Age,group=HeartDisease))+geom_boxplot()
+```
+
+# **c.Data Cleaning**
+```{r}
+#checking for null values
+colSums(is.na(heart))
+```
+## Implies that there are no null values
+```{r}
+# Looking at numerical columns distribution by box plots to look at outliers
+boxplot(heart$RestingBP,xlab="RestingBP")
+boxplot(heart$Cholesterol,xlab="Cholesterol")
+boxplot(heart$MaxHR,xlab="Max Heart Rate")
+boxplot(heart$Oldpeak,xlab="OldPeak")
+boxplot(heart$Age,xlab="Age")
+
+```
+```{r}
+# Removing the values for Numeric columns which are in range quartiles +/- 1.5 * IQR
+Q1 <- quantile(heart$RestingBP, .25)
+Q3 <- quantile(heart$RestingBP, .75)
+IQR <- IQR(heart$RestingBP)
+heart<- subset(heart, heart$RestingBP> (Q1 - 1.5*IQR) & heart$RestingBP< (Q3 + 1.5*IQR))
+
+Q1 <- quantile(heart$Cholesterol, .25)
+Q3 <- quantile(heart$Cholesterol, .75)
+IQR <- IQR(heart$Cholesterol)
+heart<- subset(heart, heart$Cholesterol> (Q1 - 1.5*IQR) & heart$Cholesterol< (Q3 + 1.5*IQR))
+
+Q1 <- quantile(heart$MaxHR, .25)
+Q3 <- quantile(heart$MaxHR, .75)
+IQR <- IQR(heart$MaxHR)
+heart<- subset(heart, heart$MaxHR> (Q1 - 1.5*IQR) & heart$MaxHR< (Q3 + 1.5*IQR))
+
+Q1 <- quantile(heart$Oldpeak, .25)
+Q3 <- quantile(heart$Oldpeak, .75)
+IQR <- IQR(heart$Oldpeak)
+heart<- subset(heart, heart$Oldpeak> (Q1 - 1.5*IQR) & heart$Oldpeak< (Q3 + 1.5*IQR))
+
+Q1 <- quantile(heart$Age, .25)
+Q3 <- quantile(heart$Age, .75)
+IQR <- IQR(heart$Age)
+heart<- subset(heart, heart$Age> (Q1 - 1.5*IQR) & heart$Age< (Q3 + 1.5*IQR))
+
+dim(heart)
+```
+```{r}
+# converting ExerciseAngina column from charater to integer(0,1)
+heart$ExerciseAngina<-ifelse(heart$ExerciseAngina=="Y",1,0)
+head(heart)
+```
+```{r}
+# summary of the dataset
+summary(heart)
+```
+
+# **d.Data Pre processing**
+```{r}
+# creating bins for cholesterol
+heart <- heart %>%mutate(ChRange = cut(Cholesterol, breaks = c(-1,150,200,500),labels=c("Normal","BorderlineHigh","High")))
+head(heart)
+```
+```{r}
+# Normalizing the data using Standardization
+heart_norm<- heart %>% select(-c(HeartDisease))
+preprocess <- preProcess(heart_norm, method=c("center","scale"))
+norm <- predict(preprocess, heart_norm)
+norm$HeartDisease<-heart$HeartDisease
+#head of normalized data
+head(norm)
+summary(norm)
+```
+
+```{r}
+# creating dummy variables
+norm_dummy <- dummyVars(~ ., data = norm)
+norm_dummies <- as.data.frame(predict(norm_dummy, newdata = norm))
+head(norm_dummies)
+```
+
+```{r}
+heart_dummies <- as.data.frame(norm_dummies)
+heart_dummies <- na.omit(heart_dummies)
+head(heart_dummies)
+```
+# **e.Clustering**
+```{r}
+library(factoextra)
+library(cluster)
+```
+
+```{r}
+set.seed(13)
+heart2<-heart_dummies %>% select(-c(HeartDisease))
+preprocess<-preProcess(heart2,method=c("center","scale"))
+pred<-predict(preprocess,heart2)
+# finding optimal number of clusters
+fviz_nbclust(heart2, kmeans, method = "wss")
+fviz_nbclust(heart2, kmeans, method = "silhouette")
+gap_stat <- clusGap(heart2,
+                    FUN = kmeans,
+                    nstart = 25,
+                    K.max = 10,
+                    B = 50)
+# plot number of clusters vs. gap statistic
+fviz_gap_stat(gap_stat)
+```
+## choosen K=3 as they were the optimal number of clusters
+
+```{r}
+# Using K means with 3 centers
+km <- kmeans(heart2, centers = 3, nstart = 25)
+km
+```
+```{r}
+# Visualizaing the Clusters
+fviz_cluster(km, data = heart2)
+```
+```{r}
+# finding means of variables in each cluster
+aggregate(heart2, by=list(cluster=km$cluster), mean)
+```
+
+```{r}
+# Adding clusters to dataset
+heart2_cluster<- cbind(heart2, cluster = km$cluster)
+head(heart2_cluster)
+```
+```{r}
+# Calculating PCA Projectionand coloring by clusters
+# Calculate PCA
+pca = prcomp(pred)
+# Save as dataframe
+rotated_data = as.data.frame(pca$x)
+# Add original labels as a reference
+rotated_data$Clusters = as.factor(km$cluster)
+# Plot and color by 
+ggplot(data = rotated_data, aes(x = PC1, y = PC2, col = Clusters)) + geom_point()
+```
+
+# **f.Classification**
+```{r}
+# 1.SVM - Using Grid Search for choosing best parameters
+train_control = trainControl(method = "cv", number = 10)
+# tuning C value
+grid <- expand.grid(C = 10^seq(-3,3,0.5))
+# Creating train/test partition
+index = createDataPartition(y=heart_dummies$HeartDisease, p=0.8, list=FALSE)
+train_set = heart_dummies[index,]
+test_set = heart_dummies[-index,]
+# Using svm classifier
+svm_grid <- train(as.factor(HeartDisease)~., data = train_set, method = "svmLinear", 
+                  trControl = train_control, tuneGrid = grid)
+svm_grid
+```
+```{r}
+#2. K Nearest Neighbor - using kknn library as it gives us option to tune grid
+# Tuning the K max,Kernel and distance parameters 
+tuneGrid <- expand.grid(kmax = 3:10,                        
+                        kernel = c("rectangular", "cos"),  
+                        distance = 1:3)                    
+# Using Knn
+kknn_fit <- train(as.factor(HeartDisease) ~ ., 
+                  data = train_set,
+                  method = 'kknn',
+                  trControl = train_control,
+                  tuneGrid = tuneGrid)
+kknn_fit
+```
+## SVM has accuarcy of 85.15% on training set with C=0.001 and kknn has 86.6% with kmax=8 and p set to 1 and kernel as rectangular.
+
+# **g.Evaluation**
+```{r}
+# choosing best Classifier by prediction and by plotting confusion matrix
+# Prediction using test set
+pred_test<-predict(svm_grid,test_set)
+pred_test1<-predict(kknn_fit,test_set)
+#Confusion Matrix
+cm<-confusionMatrix(as.factor(test_set$HeartDisease), pred_test)
+cm
+cm1<-confusionMatrix(as.factor(test_set$HeartDisease), pred_test1)
+cm1
+```
+## SVM has accuracy of 85.5% on test set which is higher than Knn which has accuracy of 81.8% on test set.
+
+## Even though both the algorithmns equally predict the False Negatives, SVM has ony 4 False positive values which made to choose SVM as best classifier
+
+```{r}
+# Prediction using test set
+pred_final<-predict(svm_grid,test_set)
+# Confusion Matrix
+cm_final<-confusionMatrix(as.factor(test_set$HeartDisease), pred_final)
+cm_final
+```
+```{r}
+# calculation precision and recall
+cm_final$byClass["Precision"]
+cm_final$byClass["Recall"]
+```
+```{r}
+# ROC curve
+library(pROC)
+roc_svm<-roc(response=test_set$HeartDisease,predictor=as.numeric(pred_final))
+plot(roc_svm, print.auc=TRUE)
+```
+
+##  Classifier's True Positives are 57, False Positives are 4, True Negatives are 61 and False Negatives are 16.
+
+## Specially in this case False Positives are important as they lead to unnecessary treatment and False negatives can lead to false diagnosis which is serious as disease is ignored.
+
+## Here the classifier has higher value of recall which means algorithm returns most of relevant results.
+
+## Area under ROC being 86% signifies that the binary classifier has better model performance while distinguishing.
+
+# **h.Report--Insights::**
+
+## 1.The dataset contains 12 Columns in which 5 are categorical and 7 are integer/numerical.
+
+## 2.Among the 918 observations 508 people are prone to heart diseases among which only 50 are women which shows that men are more prone to heart diseases.
+
+## 3.Nearly 65% people have Fasting Blood Sugar of value indicated '0' which means Blood Sugar is less than 120 mg/dl.
+
+## 4.54% people suffer from Asymptomatic type of Chest Pain among which 84% people are Males , 22% have Non-Anginal Pain, 18% have Atypical Angina Pain and rest 6% have Typical Angina Pain.
+
+## 5.Among the 508 heart disease people 77% have Asymptomatic chest Pain.
+
+## 6.On an Average Females tend to have high levels of Cholesterol and Max Heart rate thn compared to Males.
+
+## 7.Total 690 observation in the data lie within 3 standard deviations.
+
+## 8.K means clustering Algorithm produces 3 clusters of sample sizes 109,227,354.
+
+## 9. Cluster 3 has mean values of -0.09751309 for Cholesterol , -0.4221635	for Resting Blood Sugar, 0.5 for Max Heart rate and -0.67 for Exercise Angina.
+
+## 10.SVM has training accuracy of 85.7% with C value tuned to 10e-03 while Kknn has 86.6% with kmax=8, rectangle kernel and p set to Manhattan distance.
+
+## 11.Testing accuracy of svm is 85% and False positives are only 4.
+
+## 12.The model has a precision of 79.2% and recall of 93.8%.
+
+## 13. Area under ROC Curve is 86.3%.
+
+
