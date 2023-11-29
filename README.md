@@ -1,9 +1,54 @@
-## Predicting Heart Failure
 
-Cardiovascular diseases (CVDs) are the number 1 cause of death globally, taking an estimated 17.9 million lives each year, which accounts for 31% of all deaths worldwide. Four out of 5CVD deaths are due to heart attacks and strokes, and one-third of these deaths occur prematurely in people under 70 years of age. Heart failure is a common event caused by CVDs and this dataset contains 11 features that can be used to predict a possible heart disease.
+# Heart Disease Prediction Project
 
-People with cardiovascular disease or who are at high cardiovascular risk (due to the presence of one or more risk factors such as hypertension, diabetes, hyperlipidaemia or already established disease) need early detection and management wherein a machine learning model can be of great help.
+## Overview
+This project focuses on analyzing and predicting heart disease using a dataset of clinical parameters. The analysis is detailed in an R Markdown document, `heart.Rmd`, and utilizes a variety of R libraries for data processing and machine learning.
 
+## Dataset
+The dataset (`heart.csv`) comprises clinical measurements that are potential indicators of heart disease. Key parameters include age, sex, chest pain type, resting blood pressure, cholesterol levels, fasting blood sugar, resting electrocardiographic results, maximum heart rate, exercise-induced angina, ST depression induced by exercise, and the slope of the peak exercise ST segment.
 
+## File Descriptions
+- `heart.csv`: Contains the dataset used for the analysis.
+- `heart.Rmd`: An R Markdown document authored by Shanmukhi, dated 2022-11-09. It includes the analysis process, covering data loading, preprocessing, and machine learning models for prediction.
 
+## Prerequisites
+The project requires R and several R packages, including:
+- `tidyverse`, `dplyr`, `caret`, `e1071`, `ggplot2`, `rpart`, `ggfortify`, `kknn`
 
+## How to Run
+1. Ensure R and the necessary packages are installed.
+2. Set the working directory to the location of the dataset and R Markdown file.
+3. Run the `heart.Rmd` file in RStudio or a similar environment to view the analysis.
+
+## Analysis Workflow
+The `heart.Rmd` file includes sections on:
+- **Data Gathering and Integration**: Importing the Heart Failure Prediction Dataset from Kaggle.
+- **Loading Required Libraries**: Including data manipulation, visualization, and machine learning libraries.
+- **Detailed Analysis**: Steps for preprocessing, exploratory data analysis, and model building.
+
+## Results
+1. The dataset contains 12 Columns in which 5 are categorical and 7 are integer/numerical.
+
+2. Among the 918 observations 508 people are prone to heart diseases among which only 50 are women which shows that men are more prone to heart diseases.
+
+3. Nearly 65% people have Fasting Blood Sugar of value indicated '0' which means Blood Sugar is less than 120 mg/dl.
+
+4. 54% people suffer from Asymptomatic type of Chest Pain among which 84% people are Males , 22% have Non-Anginal Pain, 18% have Atypical Angina Pain and rest 6% have Typical Angina Pain.
+
+5. Among the 508 heart disease people 77% have Asymptomatic chest Pain.
+ 
+6. On an Average Females tend to have high levels of Cholesterol and Max Heart rate thn compared to Males.
+
+7. Total 690 observation in the data lie within 3 standard deviations.
+
+8. K means clustering Algorithm produces 3 clusters of sample sizes 109,227,354.
+
+9. Cluster 3 has mean values of -0.09751309 for Cholesterol , -0.4221635	for Resting Blood Sugar, 0.5 for Max Heart rate and -0.67 for Exercise Angina.
+
+10. SVM has training accuracy of 85.7% with C value tuned to 10e-03 while Kknn has 86.6% with kmax=8, rectangle kernel and p set to Manhattan distance.
+
+11. Testing accuracy of svm is 85% and False positives are only 4.
+
+12. The model has a precision of 79.2% and recall of 93.8%.
+
+13. Area under ROC Curve is 86.3%.
