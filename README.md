@@ -2,29 +2,22 @@
 # Heart Disease Prediction Project
 
 ## Overview
-This project focuses on analyzing and predicting heart disease using a dataset of clinical parameters. The analysis is detailed in an R Markdown document, `heart.Rmd`, and utilizes a variety of R libraries for data processing and machine learning.
+This project analyzes clinical data to predict heart disease risk. It demonstrates the application of data science techniques in healthcare, potentially aiding early diagnosis and prevention strategies.
 
-## Dataset
-The dataset (`heart.csv`) comprises clinical measurements that are potential indicators of heart disease. Key parameters include age, sex, chest pain type, resting blood pressure, cholesterol levels, fasting blood sugar, resting electrocardiographic results, maximum heart rate, exercise-induced angina, ST depression induced by exercise, and the slope of the peak exercise ST segment.
-
-## File Descriptions
+## Repository Contents
 - `heart.csv`: Contains the dataset used for the analysis.
 - `heart.Rmd`: An R Markdown document authored by Shanmukhi, dated 2022-11-09. It includes the analysis process, covering data loading, preprocessing, and machine learning models for prediction.
-
-## Prerequisites
-The project requires R and several R packages, including:
-- `tidyverse`, `dplyr`, `caret`, `e1071`, `ggplot2`, `rpart`, `ggfortify`, `kknn`
-
-## How to Run
-1. Ensure R and the necessary packages are installed.
-2. Set the working directory to the location of the dataset and R Markdown file.
-3. Run the `heart.Rmd` file in RStudio or a similar environment to view the analysis.
-
+  
 ## Analysis Workflow
 The `heart.Rmd` file includes sections on:
 - **Data Gathering and Integration**: Importing the Heart Failure Prediction Dataset from Kaggle.
 - **Loading Required Libraries**: Including data manipulation, visualization, and machine learning libraries.
 - **Detailed Analysis**: Steps for preprocessing, exploratory data analysis, and model building.
+
+## How to Run
+1. Ensure R and the necessary packages are installed.
+2. Set the working directory to the location of the dataset and R Markdown file.
+3. Run the `heart.Rmd` file in RStudio or a similar environment to view the analysis.
 
 ## Results
 1. The dataset contains 12 Columns in which 5 are categorical and 7 are integer/numerical.
