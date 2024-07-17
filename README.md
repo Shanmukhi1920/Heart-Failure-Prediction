@@ -44,7 +44,7 @@ This project analyzes clinical data to predict heart disease risk. It demonstrat
 - Calculated precision and recall
 - Plotted ROC curve
 
-## How to Run
+# How to Run
 1. Ensure R and the necessary packages are installed.
 2. Set the working directory to the location of the dataset and R Markdown file.
 3. Run the `heart.Rmd` file in RStudio or a similar environment to view the analysis.
